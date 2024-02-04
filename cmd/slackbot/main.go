@@ -23,7 +23,8 @@ const (
 
 type Config struct {
 	Port     int    `env:"PORT" envDefault:"8080"`
-	ClientID string `env:"CLIENTID"`
+	ClientID string `env:"CLIENT_ID"`
+	Scopes   string `env:"SCOPES"`
 }
 
 func main() {
@@ -37,7 +38,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	/*workDir, _ := os.Getwd()
+	filesDir := http.Dir(filepath.Join(workDir, "public"))
+	http.Handle("/", filesDir)*/
+
 	r := chi.NewRouter()
+
 	r.Route("/slack", func(r chi.Router) {
 		r.Post("/command", slack.HandleCommand)
 	})
