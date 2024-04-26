@@ -1,25 +1,29 @@
 package openapi
 
 type RequestBodyMessage struct {
-	Authorization string `header:"Authorization"`
-	Body          MessageIM
+	TimeStamp      string    `header:"X-Slack-Request-Timestamp"`
+	SlackSignature string    `header:"x-slack-signature"`
+	Body           MessageIM `required:"false"`
+	RawBody        []byte
 }
 
 type MessageIM struct {
-	Token    string `json:"token" doc:"Token of the "`
-	TeamId   string `json:"team_id" doc:"Team ID"`
-	ApiAppId string `json:"api_app_id"`
-	Event    struct {
-		Type        string `json:"type"`
-		Channel     string `json:"channel"`
-		User        string `json:"user"`
-		Text        string `json:"text" doc:"Text of the message" example:"This is a text"`
-		Ts          string `json:"ts"`
-		EventTs     string `json:"event_ts"`
-		ChannelType string `json:"channel_type"`
-	} `json:"event"`
-	Type        string   `json:"type"`
-	AuthedTeams []string `json:"authed_teams"`
-	EventId     string   `json:"event_id"`
-	EventTime   int      `json:"event_time"`
+	Token string `json:"token" doc:"Token of the "`
+	Event struct {
+		Type    string `json:"type" `
+		Channel string `json:"channel"`
+		User    string `json:"user"`
+		Text    string `json:"text" doc:"Text of the message" example:"This is a text" required:"false"`
+	} `json:"event,omitempty"`
+	Type      string `json:"type"`
+	Challenge string `json:"challenge,omitempty"`
+}
+
+type EventsRespBody struct {
+	Challenge string `json:"challenge"`
+}
+
+type EventsResp struct {
+	Body        EventsRespBody
+	ContentType string `header:"Content-Type"`
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"slackbot/api"
+	"slackbot/service"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5/middleware"
@@ -37,10 +38,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mux := api.SetupRoutes()
+	s, err := service.NewService()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	h := api.NewHandler(s)
 
 	fmt.Printf("Starting web server at %d\n", cfg.Port)
-	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", cfg.Port), middleware.Recoverer(mux)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", cfg.Port), middleware.Recoverer(h.Mux)); err != nil {
 		log.Fatal(err)
 	}
 }

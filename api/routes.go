@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"slackbot/api/openapi"
@@ -12,7 +14,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-func SetupRoutes() *chi.Mux {
+func (h *Handler) SetupRoutes() *chi.Mux {
 
 	mux := chi.NewMux()
 	api := humachi.New(mux, huma.DefaultConfig("Slackbot", "0.1.0"))
@@ -43,18 +45,46 @@ func SetupRoutes() *chi.Mux {
 	huma.Register(api, huma.Operation{
 		OperationID:   "receiveMessage",
 		Method:        http.MethodPost,
-		Path:          "/slack/message",
-		Summary:       "Handles messages from Slack",
-		Description:   "Handles messages from Slack",
+		Path:          "/slack/events",
+		Summary:       "Handles events from Slack",
+		Description:   "Handles events from Slack",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"slack"},
-	}, postCommandReq)
+	}, h.postCommandReq)
 
 	return mux
 }
 
 // Get values from request body or path
 
-func postCommandReq(ctx context.Context, cmd *openapi.RequestBodyMessage) (*slack.SlashCommand, error) {
-	return nil, nil
+func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
+	if requestBody == nil {
+		return nil, errors.New("request body is nil")
+	}
+	fmt.Println("here")
+
+	if requestBody.Body.Type == "url_verification" {
+		challenge := requestBody.Body.Challenge
+
+		return &openapi.EventsResp{
+			Body: openapi.EventsRespBody{
+				Challenge: challenge,
+			},
+			ContentType: "application/json",
+		}, nil
+
+	}
+
+	msg := &slack.Msg{
+		Channel: requestBody.Body.Event.Channel,
+		User:    requestBody.Body.Event.User,
+		Text:    requestBody.Body.Event.Text,
+	}
+
+	err := h.service.SlackService.ProcessReceivedSlackMessage(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &openapi.EventsResp{}, nil
 }

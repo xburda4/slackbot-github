@@ -1,15 +1,11 @@
 package slack
 
-import (
-	"net/http"
-	"strings"
-)
-
 const (
 	CommandPlan   = "plan"
 	CommandDeploy = "deploy"
 )
 
+/*
 func HandleCommand(w http.ResponseWriter, r *http.Request) {
 	userInput := r.FormValue("text")
 
@@ -26,4 +22,4 @@ func HandleCommand(w http.ResponseWriter, r *http.Request) {
 	default:
 		//TODO: return 400
 	}
-}
+}*/
