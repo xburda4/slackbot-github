@@ -1,5 +1,5 @@
 package slack
 
 func Authorize() {
-
+	
 }

@@ -5,10 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"slackbot/slack"
+	"slackbot/api"
 
 	"github.com/caarlos0/env/v10"
-	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 )
@@ -38,18 +37,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	/*workDir, _ := os.Getwd()
-	filesDir := http.Dir(filepath.Join(workDir, "public"))
-	http.Handle("/", filesDir)*/
-
-	r := chi.NewRouter()
-
-	r.Route("/slack", func(r chi.Router) {
-		r.Post("/command", slack.HandleCommand)
-	})
+	mux := api.SetupRoutes()
 
 	fmt.Printf("Starting web server at %d\n", cfg.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), middleware.Recoverer(r)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("127.0.0.1:%d", cfg.Port), middleware.Recoverer(mux)); err != nil {
 		log.Fatal(err)
 	}
 }
