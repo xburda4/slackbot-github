@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 
 	"slackbot/api/openapi"
 
+	"github.com/ajg/form"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
@@ -50,6 +52,17 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 		Description:   "Handles events from Slack",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"slack"},
+	}, h.postEventReq)
+
+	huma.Register(api, huma.Operation{
+		OperationID:      "receiveCommand",
+		Method:           http.MethodPost,
+		SkipValidateBody: true,
+		Path:             "/slack/command",
+		Summary:          "Handles commands from Slack",
+		Description:      "Handles commands from Slack",
+		DefaultStatus:    http.StatusOK,
+		Tags:             []string{"slack"},
 	}, h.postCommandReq)
 
 	return mux
@@ -57,7 +70,8 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 
 // Get values from request body or path
 
-func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
+func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
+
 	if requestBody == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -84,6 +98,27 @@ func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.Reque
 	err := h.service.SlackService.ProcessReceivedSlackMessage(ctx, msg)
 	if err != nil {
 		return nil, err
+	}
+
+	return &openapi.EventsResp{}, nil
+}
+
+func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.CommandReq) (*openapi.EventsResp, error) {
+	if requestBody == nil {
+		return nil, huma.Error400BadRequest("request body is nil")
+	}
+
+	var commandBody openapi.CommandBody
+	// Get request info you don't normally have access to.
+	d := form.NewDecoder(bytes.NewReader(requestBody.RawBody))
+
+	if err := d.Decode(&commandBody); err != nil {
+		return nil, huma.Error400BadRequest("invalid body")
+	}
+
+	err := h.service.SlackService.HandleCommand(commandBody)
+	if err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
 	return &openapi.EventsResp{}, nil

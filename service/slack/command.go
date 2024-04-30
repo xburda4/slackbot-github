@@ -1,25 +1,42 @@
 package slack
 
-const (
-	CommandPlan   = "plan"
-	CommandDeploy = "deploy"
+import (
+	"strings"
+
+	"slackbot/api/openapi"
 )
 
-/*
-func HandleCommand(w http.ResponseWriter, r *http.Request) {
-	userInput := r.FormValue("text")
+const (
+	CommandJoke         = "joke"
+	CommandGreet        = "greet"
+	CommandSing         = "sing"
+	CommandLogin        = "login"
+	CommandLogout       = "logout"
+	CommandRepositories = "repositories"
+)
 
-	command, params, isFound := strings.Cut(userInput, " ")
+func (s *Service) HandleCommand(command openapi.CommandBody) error {
+	commandText, _, isFound := strings.Cut(command.Text, " ")
 	if !isFound {
 
 	}
 
-	switch command {
-	case CommandPlan:
+	switch commandText {
+	case CommandJoke:
+		err := s.tellAJoke(command)
+		if err != nil {
+			return err
+		}
+	case CommandGreet:
 		//TODO: call github
-	case CommandDeploy:
-		//TODO: call github
+	case CommandSing:
+
+	case CommandLogin:
+	case CommandLogout:
+	case CommandRepositories:
 	default:
 		//TODO: return 400
 	}
-}*/
+
+	return nil
+}
