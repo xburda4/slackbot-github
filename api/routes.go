@@ -76,6 +76,16 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 		Tags:          []string{"slack"},
 	}, h.handleFinishAuthRequest)
 
+	huma.Register(api, huma.Operation{
+		OperationID:   "finishGithubOauth",
+		Method:        http.MethodGet,
+		Path:          "/github/oauth",
+		Summary:       "Finish GitHub authentication of the bot",
+		Description:   "Finish GitHub authentication of the bot",
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{"github"},
+	}, h.handleFinishGithubAuthRequest)
+
 	return mux
 }
 
@@ -89,6 +99,14 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 
 	return nil, nil
 }*/
+
+func (h *Handler) handleFinishGithubAuthRequest(_ context.Context, req *openapi.GithubOauthReq) (*struct{}, error) {
+	err := h.service.GithubOauth(req.Code)
+	if err != nil {
+		return nil, err
+	}
+	return &struct{}{}, nil
+}
 
 func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*struct{}, error) {
 	//err := h.service.SlackService.Authorize()

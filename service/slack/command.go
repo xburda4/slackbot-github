@@ -32,10 +32,13 @@ func (s *Service) HandleCommand(command openapi.CommandBody) error {
 			return err
 		}
 	case CommandLogin:
+		err := s.githubLogin(command)
+		if err != nil {
+			return err
+		}
 	case CommandLogout:
 	case CommandRepositories:
 	default:
-
 		//TODO: return 400
 	}
 

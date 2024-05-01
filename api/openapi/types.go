@@ -52,3 +52,7 @@ type CommandReq struct {
 	ContentType    string `header:"Content-Type"`
 	RawBody        []byte
 }
+
+type GithubOauthReq struct {
+	Code string `query:"code"`
+}

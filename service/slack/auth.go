@@ -1,12 +1,18 @@
 package slack
 
 import (
+	"fmt"
 	"net/url"
 	"os"
+
+	"slackbot/api/openapi"
+
+	"github.com/slack-go/slack"
 )
 
 const (
-	authorizeURL = "https://slack.com/oauth/v2/authorize"
+	authorizeURL       = "https://slack.com/oauth/v2/authorize"
+	githubAuthorizeURL = "https://github.com/login/oauth/authorize"
 )
 
 func (s *Service) Authenticate() (string, error) {
@@ -27,5 +33,28 @@ func (s *Service) Authenticate() (string, error) {
 func (s *Service) Authorize() error {
 
 	//slack.GetBotOAuthToken(http.Client{}, os.Getenv("CLIENT_ID"), os.Getenv("CLIENT_SECRET"), os.Getenv("SIGNING_SECRET"))
+	return nil
+}
+
+func (s *Service) githubLogin(command openapi.CommandBody) error {
+	_, err := s.client.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionBlocks(slack.ActionBlock{
+		Type: "actions",
+		Elements: &slack.BlockElements{
+			ElementSet: []slack.BlockElement{
+				slack.ButtonBlockElement{
+					Type: "button",
+					Text: &slack.TextBlockObject{
+						Type: "plain_text",
+						Text: "Login",
+					},
+					URL: fmt.Sprintf("%s?client_id=%s&redirect_uri=%s", githubAuthorizeURL, os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_REDIRECT_URI")),
+				},
+			},
+		},
+	}))
+	if err != nil {
+		return nil
+	}
+
 	return nil
 }

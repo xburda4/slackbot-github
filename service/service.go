@@ -1,13 +1,19 @@
 package service
 
-import "slackbot/service/slack"
+import (
+	"slackbot/ent"
+	"slackbot/service/slack"
+)
 
 type Service struct {
 	SlackService slack.Service
+	Database     *ent.Client
 }
 
-func NewService() (Service, error) {
-	s := Service{}
+func NewService(entClient *ent.Client) (Service, error) {
+	s := Service{
+		Database: entClient,
+	}
 	s.SlackService = slack.NewSlackService()
 
 	return s, nil

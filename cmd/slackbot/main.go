@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 
 	"slackbot/api"
+	"slackbot/ent"
 	"slackbot/service"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -38,7 +41,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s, err := service.NewService()
+	database, err := ent.Open("sqlite3", "file:./sqlite-database.db?mode=rwc&cache=shared&_fk=1")
+	if err != nil {
+		log.Fatalf("failed opening connection to sqlite: %v", err)
+	}
+	defer database.Close()
+	// Run the auto migration tool.
+	if err := database.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
+
+	s, err := service.NewService(database)
 	if err != nil {
 		log.Fatal(err)
 	}
