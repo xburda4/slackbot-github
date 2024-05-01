@@ -43,6 +43,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 			Required: true,
 		},
 	}, postCommandReq)*/
+	mux.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "receiveMessage",
@@ -61,14 +62,39 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 		Path:             "/slack/command",
 		Summary:          "Handles commands from Slack",
 		Description:      "Handles commands from Slack",
-		DefaultStatus:    http.StatusOK,
+		DefaultStatus:    http.StatusNoContent,
 		Tags:             []string{"slack"},
 	}, h.postCommandReq)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "finishAuthentication",
+		Method:        http.MethodGet,
+		Path:          "/slack/oauth",
+		Summary:       "Finish authentication of the bot",
+		Description:   "Finish authentication of the bot",
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{"slack"},
+	}, h.handleFinishAuthRequest)
 
 	return mux
 }
 
 // Get values from request body or path
+
+/*func (h *Handler) handleAuthorizationReq(ctx huma.Context, _ *struct{}) (*struct{}, error) {
+	redirectURL, err := h.service.SlackService.Authenticate()
+	if err != nil {
+		return nil, huma.Error500InternalServerError(err.Error())
+	}
+
+	return nil, nil
+}*/
+
+func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*struct{}, error) {
+	//err := h.service.SlackService.Authorize()
+
+	return nil, nil
+}
 
 func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
 
@@ -103,7 +129,7 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 	return &openapi.EventsResp{}, nil
 }
 
-func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.CommandReq) (*openapi.EventsResp, error) {
+func (h *Handler) postCommandReq(_ context.Context, requestBody *openapi.CommandReq) (*struct{}, error) {
 	if requestBody == nil {
 		return nil, huma.Error400BadRequest("request body is nil")
 	}
@@ -121,5 +147,5 @@ func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.Comma
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
 
-	return &openapi.EventsResp{}, nil
+	return nil, nil
 }

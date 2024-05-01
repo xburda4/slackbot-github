@@ -16,6 +16,8 @@ require (
 	github.com/danielgtaylor/casing v1.0.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
+	github.com/google/go-github/v61 v61.0.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/cobra v1.8.0 // indirect

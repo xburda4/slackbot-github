@@ -9,7 +9,6 @@ import (
 const (
 	CommandJoke         = "joke"
 	CommandGreet        = "greet"
-	CommandSing         = "sing"
 	CommandLogin        = "login"
 	CommandLogout       = "logout"
 	CommandRepositories = "repositories"
@@ -28,13 +27,15 @@ func (s *Service) HandleCommand(command openapi.CommandBody) error {
 			return err
 		}
 	case CommandGreet:
-		//TODO: call github
-	case CommandSing:
-
+		err := s.greet(command)
+		if err != nil {
+			return err
+		}
 	case CommandLogin:
 	case CommandLogout:
 	case CommandRepositories:
 	default:
+
 		//TODO: return 400
 	}
 

@@ -1,9 +1,8 @@
 package slack
 
 import (
+	"fmt"
 	"math/rand"
-	"strconv"
-	"time"
 
 	"slackbot/api/openapi"
 
@@ -47,13 +46,7 @@ func (s *Service) pickAJoke() Joke {
 func (s *Service) tellAJoke(command openapi.CommandBody) error {
 	joke := s.pickAJoke()
 
-	_, _, err := s.client.PostMessage(command.ChannelID, slack.MsgOptionText(joke.Setup, false), slack.MsgOptionPost())
-	if err != nil {
-		return err
-	}
-
-	postTime := time.Now().Add(3 * time.Second)
-	_, _, err = s.client.PostMessage(command.ChannelID, slack.MsgOptionText(joke.Punchline, false), slack.MsgOptionSchedule(strconv.FormatInt(postTime.Unix(), 10)))
+	_, _, err := s.client.PostMessage(command.ChannelID, slack.MsgOptionText(fmt.Sprintf("%s\n\n%s", joke.Setup, joke.Punchline), false), slack.MsgOptionPost())
 	if err != nil {
 		return err
 	}
