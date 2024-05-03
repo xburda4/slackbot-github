@@ -67,7 +67,7 @@ func (s *Service) GithubOauth(ctx context.Context, code, encodedState string) er
 		SetGhAccessToken(githubOauth.AccessToken).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
-		OnConflict().
+		OnConflictColumns("slack_id").
 		UpdateGhAccessToken().
 		UpdateUpdatedAt().
 		UpdateGhUsername().
