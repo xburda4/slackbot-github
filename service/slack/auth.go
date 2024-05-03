@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 
 	"slackbot/api/openapi"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/slack-go/slack"
 )
 
@@ -37,7 +39,7 @@ func (s *Service) Authorize() error {
 	return nil
 }
 
-func (s *Service) githubLogin(command openapi.CommandBody) error {
+func (s *Service) githubLogin(_ context.Context, command openapi.CommandBody) error {
 	encodedState := base64.StdEncoding.EncodeToString([]byte(command.UserID))
 
 	_, err := s.client.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionBlocks(slack.ActionBlock{
@@ -60,6 +62,20 @@ func (s *Service) githubLogin(command openapi.CommandBody) error {
 	}))
 	if err != nil {
 		return nil
+	}
+
+	return nil
+}
+
+func (s *Service) githubLogout(ctx context.Context, command openapi.CommandBody) error {
+	_, err := s.Database.GithubUser.Delete().Where(sql.FieldContains("slack_id", command.UserID)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionText("You were successfully logged out of Github.", false))
+	if err != nil {
+		return err
 	}
 
 	return nil

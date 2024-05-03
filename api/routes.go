@@ -130,7 +130,7 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 	return &openapi.EventsResp{}, nil
 }
 
-func (h *Handler) postCommandReq(_ context.Context, requestBody *openapi.CommandReq) (*struct{}, error) {
+func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.CommandReq) (*struct{}, error) {
 	if requestBody == nil {
 		return nil, huma.Error400BadRequest("request body is nil")
 	}
@@ -143,7 +143,7 @@ func (h *Handler) postCommandReq(_ context.Context, requestBody *openapi.Command
 		return nil, huma.Error400BadRequest("invalid body")
 	}
 
-	err := h.service.SlackService.HandleCommand(commandBody)
+	err := h.service.SlackService.HandleCommand(ctx, commandBody)
 	if err != nil {
 		return nil, huma.Error500InternalServerError(err.Error())
 	}

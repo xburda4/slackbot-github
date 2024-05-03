@@ -13,7 +13,7 @@ type Service struct {
 func NewService(entClient *ent.Client) (Service, error) {
 	s := Service{
 		Database:     entClient,
-		SlackService: slack.NewSlackService(),
+		SlackService: slack.NewSlackService(entClient),
 	}
 
 	return s, nil
