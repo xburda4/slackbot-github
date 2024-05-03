@@ -54,5 +54,6 @@ type CommandReq struct {
 }
 
 type GithubOauthReq struct {
-	Code string `query:"code"`
+	Code  string `query:"code"`
+	State string `query:"state"`
 }

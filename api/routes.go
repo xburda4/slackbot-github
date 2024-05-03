@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 
 	"slackbot/api/openapi"
 
@@ -21,29 +22,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	mux := chi.NewMux()
 	api := humachi.New(mux, huma.DefaultConfig("Slackbot", "0.1.0"))
 
-	/*huma.Register(api, huma.Operation{
-		OperationID:   "receiveCommand",
-		Method:        http.MethodPost,
-		Path:          "/slack/command",
-		Summary:       "Handles slash command from Slack",
-		Description:   "Handles slash command from Slack",
-		DefaultStatus: http.StatusOK,
-		Tags:          []string{"slack"},
-		RequestBody: &huma.RequestBody{
-			Description: "Slack command ",
-			Content: map[string]*huma.MediaType{
-				"application/json": {
-					Schema:     nil,
-					Example:    nil,
-					Examples:   nil,
-					Encoding:   nil,
-					Extensions: nil,
-				},
-			},
-			Required: true,
-		},
-	}, postCommandReq)*/
-	mux.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
+	mux.Handle("/public/*", http.StripPrefix("/public/", http.FileServer(http.Dir(os.Getenv("PUBLIC_FOLDER")))))
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "receiveMessage",
@@ -101,7 +80,7 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 }*/
 
 func (h *Handler) handleFinishGithubAuthRequest(_ context.Context, req *openapi.GithubOauthReq) (*struct{}, error) {
-	err := h.service.GithubOauth(req.Code)
+	err := h.service.GithubOauth(req.Code, req.State)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +94,6 @@ func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*stru
 }
 
 func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
-
 	if requestBody == nil {
 		return nil, errors.New("request body is nil")
 	}

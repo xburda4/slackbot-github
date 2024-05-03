@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -22,8 +23,15 @@ type GithubOauthResp struct {
 	ExpiresIn   int    `json:"expires_in" form:"expires_in"`
 }
 
-func (s *Service) GithubOauth(code string) error {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s?code=%s&client_id=%s&client_secret=%s", githubOauthURL, code, os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_CLIENT_SECRET")), nil)
+func (s *Service) GithubOauth(code, encodedState string) error {
+	var decodedState []byte
+	_, err := base64.StdEncoding.Decode(decodedState, []byte(encodedState))
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("%s?code=%s&client_id=%s&client_secret=%s", githubOauthURL, code, os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_CLIENT_SECRET")), nil)
 	if err != nil {
 		return err
 	}
@@ -46,6 +54,7 @@ func (s *Service) GithubOauth(code string) error {
 	}
 
 	err = s.Database.Github.Create().
+		SetSlackID(string(decodedState)).
 		SetID(uuid.New()).
 		SetUsername(*user.Login).
 		SetToken(githubOauth.AccessToken).

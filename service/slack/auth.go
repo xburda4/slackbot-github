@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"os"
@@ -37,6 +38,9 @@ func (s *Service) Authorize() error {
 }
 
 func (s *Service) githubLogin(command openapi.CommandBody) error {
+	var encodedState []byte
+	base64.StdEncoding.Encode(encodedState, []byte(command.UserID))
+
 	_, err := s.client.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionBlocks(slack.ActionBlock{
 		Type: "actions",
 		Elements: &slack.BlockElements{
@@ -47,7 +51,10 @@ func (s *Service) githubLogin(command openapi.CommandBody) error {
 						Type: "plain_text",
 						Text: "Login",
 					},
-					URL: fmt.Sprintf("%s?client_id=%s&redirect_uri=%s", githubAuthorizeURL, os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_REDIRECT_URI")),
+					URL: fmt.Sprintf("%s?client_id=%s&redirect_uri=%s",
+						githubAuthorizeURL,
+						os.Getenv("GITHUB_CLIENT_ID"),
+						fmt.Sprintf("%s&state=%s", os.Getenv("GITHUB_REDIRECT_URI"), encodedState)),
 				},
 			},
 		},

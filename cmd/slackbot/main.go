@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"slackbot/api"
 	"slackbot/ent"
@@ -13,7 +14,7 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -41,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	database, err := ent.Open("sqlite3", "file:./sqlite-database.db?mode=rwc&cache=shared&_fk=1")
+	database, err := ent.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}
