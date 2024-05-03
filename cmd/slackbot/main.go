@@ -11,6 +11,7 @@ import (
 	"slackbot/ent"
 	"slackbot/service"
 
+	"entgo.io/ent/dialect"
 	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
@@ -42,9 +43,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	database, err := ent.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
+	database, err := ent.Open(dialect.Postgres, os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
-		log.Fatalf("failed opening connection to sqlite: %v", err)
+		log.Fatalf("failed opening connection to database: %v", err)
 	}
 	defer database.Close()
 	// Run the auto migration tool.

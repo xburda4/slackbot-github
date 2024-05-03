@@ -79,8 +79,8 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	return nil, nil
 }*/
 
-func (h *Handler) handleFinishGithubAuthRequest(_ context.Context, req *openapi.GithubOauthReq) (*struct{}, error) {
-	err := h.service.GithubOauth(req.Code, req.State)
+func (h *Handler) handleFinishGithubAuthRequest(ctx context.Context, req *openapi.GithubOauthReq) (*struct{}, error) {
+	err := h.service.GithubOauth(ctx, req.Code, req.State)
 	if err != nil {
 		return nil, err
 	}

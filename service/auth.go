@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/go-github/v61/github"
 	"github.com/google/uuid"
@@ -23,7 +24,14 @@ type GithubOauthResp struct {
 	ExpiresIn   int    `json:"expires_in" form:"expires_in"`
 }
 
-func (s *Service) GithubOauth(code, encodedState string) error {
+type GithubUserDocument struct {
+	SlackID           string `json:"slack_id"`
+	GithubUsername    string `json:"github_username"`
+	GithubAccessToken string `json:"github_access_token"`
+}
+
+func (s *Service) GithubOauth(ctx context.Context, code, encodedState string) error {
+	//decodedState contains SlackID
 	var decodedState []byte
 	_, err := base64.StdEncoding.Decode(decodedState, []byte(encodedState))
 	if err != nil {
@@ -48,19 +56,23 @@ func (s *Service) GithubOauth(code, encodedState string) error {
 	}
 
 	ghClient := github.Client{}
-	user, _, err := ghClient.WithAuthToken(githubOauth.AccessToken).Users.Get(context.Background(), "")
+	ghUser, _, err := ghClient.WithAuthToken(githubOauth.AccessToken).Users.Get(context.Background(), "")
 	if err != nil {
 		return err
 	}
 
-	err = s.Database.Github.Create().
-		SetSlackID(string(decodedState)).
+	now := time.Now()
+	err = s.Database.
+		GithubUser.Create().
 		SetID(uuid.New()).
-		SetUsername(*user.Login).
-		SetToken(githubOauth.AccessToken).
-		Exec(context.Background())
+		SetSlackID(string(decodedState)).
+		SetGhUsername(*ghUser.Login).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Exec(ctx)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
