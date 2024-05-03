@@ -79,12 +79,17 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	return nil, nil
 }*/
 
-func (h *Handler) handleFinishGithubAuthRequest(ctx context.Context, req *openapi.GithubOauthReq) (*struct{}, error) {
+func (h *Handler) handleFinishGithubAuthRequest(ctx context.Context, req *openapi.GithubOauthReq) (*openapi.GithubOauthResp, error) {
 	err := h.service.GithubOauth(ctx, req.Code, req.State)
 	if err != nil {
 		return nil, err
 	}
-	return &struct{}{}, nil
+
+	return &openapi.GithubOauthResp{
+		Status:      http.StatusOK,
+		Body:        []byte("<html><head><script type=\"text/javascript\">window.close();</script></head><body><p>Operation successful. You can safely close this window.</p></body></html>"),
+		ContentType: "text/html",
+	}, nil
 }
 
 func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*struct{}, error) {

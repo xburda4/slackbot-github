@@ -2,8 +2,30 @@
 
 package ent
 
+import (
+	"slackbot/ent/githubuser"
+	"slackbot/ent/schema"
+	"time"
+
+	"github.com/google/uuid"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	githubuserFields := schema.GithubUser{}.Fields()
+	_ = githubuserFields
+	// githubuserDescCreatedAt is the schema descriptor for created_at field.
+	githubuserDescCreatedAt := githubuserFields[4].Descriptor()
+	// githubuser.DefaultCreatedAt holds the default value on creation for the created_at field.
+	githubuser.DefaultCreatedAt = githubuserDescCreatedAt.Default.(time.Time)
+	// githubuserDescUpdatedAt is the schema descriptor for updated_at field.
+	githubuserDescUpdatedAt := githubuserFields[5].Descriptor()
+	// githubuser.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	githubuser.DefaultUpdatedAt = githubuserDescUpdatedAt.Default.(time.Time)
+	// githubuserDescID is the schema descriptor for id field.
+	githubuserDescID := githubuserFields[0].Descriptor()
+	// githubuser.DefaultID holds the default value on creation for the id field.
+	githubuser.DefaultID = githubuserDescID.Default.(func() uuid.UUID)
 }

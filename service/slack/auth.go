@@ -38,8 +38,7 @@ func (s *Service) Authorize() error {
 }
 
 func (s *Service) githubLogin(command openapi.CommandBody) error {
-	var encodedState []byte
-	base64.StdEncoding.Encode(encodedState, []byte(command.UserID))
+	encodedState := base64.StdEncoding.EncodeToString([]byte(command.UserID))
 
 	_, err := s.client.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionBlocks(slack.ActionBlock{
 		Type: "actions",

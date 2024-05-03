@@ -57,3 +57,9 @@ type GithubOauthReq struct {
 	Code  string `query:"code"`
 	State string `query:"state"`
 }
+
+type GithubOauthResp struct {
+	Status      int
+	Body        []byte
+	ContentType string `header:"Content-Type"`
+}

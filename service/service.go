@@ -12,9 +12,9 @@ type Service struct {
 
 func NewService(entClient *ent.Client) (Service, error) {
 	s := Service{
-		Database: entClient,
+		Database:     entClient,
+		SlackService: slack.NewSlackService(),
 	}
-	s.SlackService = slack.NewSlackService()
 
 	return s, nil
 }

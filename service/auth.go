@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/go-github/v61/github"
-	"github.com/google/uuid"
 )
 
 const (
@@ -32,8 +31,7 @@ type GithubUserDocument struct {
 
 func (s *Service) GithubOauth(ctx context.Context, code, encodedState string) error {
 	//decodedState contains SlackID
-	var decodedState []byte
-	_, err := base64.StdEncoding.Decode(decodedState, []byte(encodedState))
+	decodedState, err := base64.StdEncoding.DecodeString(encodedState)
 	if err != nil {
 		return err
 	}
@@ -64,11 +62,15 @@ func (s *Service) GithubOauth(ctx context.Context, code, encodedState string) er
 	now := time.Now()
 	err = s.Database.
 		GithubUser.Create().
-		SetID(uuid.New()).
 		SetSlackID(string(decodedState)).
 		SetGhUsername(*ghUser.Login).
+		SetGhAccessToken(githubOauth.AccessToken).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
+		OnConflict().
+		UpdateGhAccessToken().
+		UpdateUpdatedAt().
+		UpdateGhUsername().
 		Exec(ctx)
 	if err != nil {
 		return err

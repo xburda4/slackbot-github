@@ -9,6 +9,8 @@ import (
 	"slackbot/ent/githubuser"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type GithubUserCreate struct {
 	config
 	mutation *GithubUserMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetGhUsername sets the "gh_username" field.
@@ -45,15 +48,39 @@ func (guc *GithubUserCreate) SetCreatedAt(t time.Time) *GithubUserCreate {
 	return guc
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (guc *GithubUserCreate) SetNillableCreatedAt(t *time.Time) *GithubUserCreate {
+	if t != nil {
+		guc.SetCreatedAt(*t)
+	}
+	return guc
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (guc *GithubUserCreate) SetUpdatedAt(t time.Time) *GithubUserCreate {
 	guc.mutation.SetUpdatedAt(t)
 	return guc
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (guc *GithubUserCreate) SetNillableUpdatedAt(t *time.Time) *GithubUserCreate {
+	if t != nil {
+		guc.SetUpdatedAt(*t)
+	}
+	return guc
+}
+
 // SetID sets the "id" field.
 func (guc *GithubUserCreate) SetID(u uuid.UUID) *GithubUserCreate {
 	guc.mutation.SetID(u)
+	return guc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (guc *GithubUserCreate) SetNillableID(u *uuid.UUID) *GithubUserCreate {
+	if u != nil {
+		guc.SetID(*u)
+	}
 	return guc
 }
 
@@ -64,6 +91,7 @@ func (guc *GithubUserCreate) Mutation() *GithubUserMutation {
 
 // Save creates the GithubUser in the database.
 func (guc *GithubUserCreate) Save(ctx context.Context) (*GithubUser, error) {
+	guc.defaults()
 	return withHooks(ctx, guc.sqlSave, guc.mutation, guc.hooks)
 }
 
@@ -86,6 +114,22 @@ func (guc *GithubUserCreate) Exec(ctx context.Context) error {
 func (guc *GithubUserCreate) ExecX(ctx context.Context) {
 	if err := guc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (guc *GithubUserCreate) defaults() {
+	if _, ok := guc.mutation.CreatedAt(); !ok {
+		v := githubuser.DefaultCreatedAt
+		guc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := guc.mutation.UpdatedAt(); !ok {
+		v := githubuser.DefaultUpdatedAt
+		guc.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := guc.mutation.ID(); !ok {
+		v := githubuser.DefaultID()
+		guc.mutation.SetID(v)
 	}
 }
 
@@ -137,6 +181,7 @@ func (guc *GithubUserCreate) createSpec() (*GithubUser, *sqlgraph.CreateSpec) {
 		_node = &GithubUser{config: guc.config}
 		_spec = sqlgraph.NewCreateSpec(githubuser.Table, sqlgraph.NewFieldSpec(githubuser.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = guc.conflict
 	if id, ok := guc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -164,11 +209,277 @@ func (guc *GithubUserCreate) createSpec() (*GithubUser, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GithubUser.Create().
+//		SetGhUsername(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GithubUserUpsert) {
+//			SetGhUsername(v+v).
+//		}).
+//		Exec(ctx)
+func (guc *GithubUserCreate) OnConflict(opts ...sql.ConflictOption) *GithubUserUpsertOne {
+	guc.conflict = opts
+	return &GithubUserUpsertOne{
+		create: guc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (guc *GithubUserCreate) OnConflictColumns(columns ...string) *GithubUserUpsertOne {
+	guc.conflict = append(guc.conflict, sql.ConflictColumns(columns...))
+	return &GithubUserUpsertOne{
+		create: guc,
+	}
+}
+
+type (
+	// GithubUserUpsertOne is the builder for "upsert"-ing
+	//  one GithubUser node.
+	GithubUserUpsertOne struct {
+		create *GithubUserCreate
+	}
+
+	// GithubUserUpsert is the "OnConflict" setter.
+	GithubUserUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetGhUsername sets the "gh_username" field.
+func (u *GithubUserUpsert) SetGhUsername(v string) *GithubUserUpsert {
+	u.Set(githubuser.FieldGhUsername, v)
+	return u
+}
+
+// UpdateGhUsername sets the "gh_username" field to the value that was provided on create.
+func (u *GithubUserUpsert) UpdateGhUsername() *GithubUserUpsert {
+	u.SetExcluded(githubuser.FieldGhUsername)
+	return u
+}
+
+// SetSlackID sets the "slack_id" field.
+func (u *GithubUserUpsert) SetSlackID(v string) *GithubUserUpsert {
+	u.Set(githubuser.FieldSlackID, v)
+	return u
+}
+
+// UpdateSlackID sets the "slack_id" field to the value that was provided on create.
+func (u *GithubUserUpsert) UpdateSlackID() *GithubUserUpsert {
+	u.SetExcluded(githubuser.FieldSlackID)
+	return u
+}
+
+// SetGhAccessToken sets the "gh_access_token" field.
+func (u *GithubUserUpsert) SetGhAccessToken(v string) *GithubUserUpsert {
+	u.Set(githubuser.FieldGhAccessToken, v)
+	return u
+}
+
+// UpdateGhAccessToken sets the "gh_access_token" field to the value that was provided on create.
+func (u *GithubUserUpsert) UpdateGhAccessToken() *GithubUserUpsert {
+	u.SetExcluded(githubuser.FieldGhAccessToken)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GithubUserUpsert) SetCreatedAt(v time.Time) *GithubUserUpsert {
+	u.Set(githubuser.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GithubUserUpsert) UpdateCreatedAt() *GithubUserUpsert {
+	u.SetExcluded(githubuser.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GithubUserUpsert) SetUpdatedAt(v time.Time) *GithubUserUpsert {
+	u.Set(githubuser.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GithubUserUpsert) UpdateUpdatedAt() *GithubUserUpsert {
+	u.SetExcluded(githubuser.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(githubuser.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GithubUserUpsertOne) UpdateNewValues() *GithubUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(githubuser.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *GithubUserUpsertOne) Ignore() *GithubUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GithubUserUpsertOne) DoNothing() *GithubUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GithubUserCreate.OnConflict
+// documentation for more info.
+func (u *GithubUserUpsertOne) Update(set func(*GithubUserUpsert)) *GithubUserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GithubUserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetGhUsername sets the "gh_username" field.
+func (u *GithubUserUpsertOne) SetGhUsername(v string) *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetGhUsername(v)
+	})
+}
+
+// UpdateGhUsername sets the "gh_username" field to the value that was provided on create.
+func (u *GithubUserUpsertOne) UpdateGhUsername() *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateGhUsername()
+	})
+}
+
+// SetSlackID sets the "slack_id" field.
+func (u *GithubUserUpsertOne) SetSlackID(v string) *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetSlackID(v)
+	})
+}
+
+// UpdateSlackID sets the "slack_id" field to the value that was provided on create.
+func (u *GithubUserUpsertOne) UpdateSlackID() *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateSlackID()
+	})
+}
+
+// SetGhAccessToken sets the "gh_access_token" field.
+func (u *GithubUserUpsertOne) SetGhAccessToken(v string) *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetGhAccessToken(v)
+	})
+}
+
+// UpdateGhAccessToken sets the "gh_access_token" field to the value that was provided on create.
+func (u *GithubUserUpsertOne) UpdateGhAccessToken() *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateGhAccessToken()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GithubUserUpsertOne) SetCreatedAt(v time.Time) *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GithubUserUpsertOne) UpdateCreatedAt() *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GithubUserUpsertOne) SetUpdatedAt(v time.Time) *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GithubUserUpsertOne) UpdateUpdatedAt() *GithubUserUpsertOne {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GithubUserUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GithubUserCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GithubUserUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *GithubUserUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: GithubUserUpsertOne.ID is not supported by MySQL driver. Use GithubUserUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *GithubUserUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // GithubUserCreateBulk is the builder for creating many GithubUser entities in bulk.
 type GithubUserCreateBulk struct {
 	config
 	err      error
 	builders []*GithubUserCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the GithubUser entities in the database.
@@ -182,6 +493,7 @@ func (gucb *GithubUserCreateBulk) Save(ctx context.Context) ([]*GithubUser, erro
 	for i := range gucb.builders {
 		func(i int, root context.Context) {
 			builder := gucb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*GithubUserMutation)
 				if !ok {
@@ -197,6 +509,7 @@ func (gucb *GithubUserCreateBulk) Save(ctx context.Context) ([]*GithubUser, erro
 					_, err = mutators[i+1].Mutate(root, gucb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = gucb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, gucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -243,6 +556,190 @@ func (gucb *GithubUserCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (gucb *GithubUserCreateBulk) ExecX(ctx context.Context) {
 	if err := gucb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.GithubUser.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.GithubUserUpsert) {
+//			SetGhUsername(v+v).
+//		}).
+//		Exec(ctx)
+func (gucb *GithubUserCreateBulk) OnConflict(opts ...sql.ConflictOption) *GithubUserUpsertBulk {
+	gucb.conflict = opts
+	return &GithubUserUpsertBulk{
+		create: gucb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (gucb *GithubUserCreateBulk) OnConflictColumns(columns ...string) *GithubUserUpsertBulk {
+	gucb.conflict = append(gucb.conflict, sql.ConflictColumns(columns...))
+	return &GithubUserUpsertBulk{
+		create: gucb,
+	}
+}
+
+// GithubUserUpsertBulk is the builder for "upsert"-ing
+// a bulk of GithubUser nodes.
+type GithubUserUpsertBulk struct {
+	create *GithubUserCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(githubuser.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *GithubUserUpsertBulk) UpdateNewValues() *GithubUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(githubuser.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.GithubUser.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *GithubUserUpsertBulk) Ignore() *GithubUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *GithubUserUpsertBulk) DoNothing() *GithubUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the GithubUserCreateBulk.OnConflict
+// documentation for more info.
+func (u *GithubUserUpsertBulk) Update(set func(*GithubUserUpsert)) *GithubUserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&GithubUserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetGhUsername sets the "gh_username" field.
+func (u *GithubUserUpsertBulk) SetGhUsername(v string) *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetGhUsername(v)
+	})
+}
+
+// UpdateGhUsername sets the "gh_username" field to the value that was provided on create.
+func (u *GithubUserUpsertBulk) UpdateGhUsername() *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateGhUsername()
+	})
+}
+
+// SetSlackID sets the "slack_id" field.
+func (u *GithubUserUpsertBulk) SetSlackID(v string) *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetSlackID(v)
+	})
+}
+
+// UpdateSlackID sets the "slack_id" field to the value that was provided on create.
+func (u *GithubUserUpsertBulk) UpdateSlackID() *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateSlackID()
+	})
+}
+
+// SetGhAccessToken sets the "gh_access_token" field.
+func (u *GithubUserUpsertBulk) SetGhAccessToken(v string) *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetGhAccessToken(v)
+	})
+}
+
+// UpdateGhAccessToken sets the "gh_access_token" field to the value that was provided on create.
+func (u *GithubUserUpsertBulk) UpdateGhAccessToken() *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateGhAccessToken()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *GithubUserUpsertBulk) SetCreatedAt(v time.Time) *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *GithubUserUpsertBulk) UpdateCreatedAt() *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *GithubUserUpsertBulk) SetUpdatedAt(v time.Time) *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *GithubUserUpsertBulk) UpdateUpdatedAt() *GithubUserUpsertBulk {
+	return u.Update(func(s *GithubUserUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *GithubUserUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the GithubUserCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for GithubUserCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *GithubUserUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

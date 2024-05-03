@@ -12,7 +12,7 @@ var (
 	GithubUsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "gh_username", Type: field.TypeString},
-		{Name: "slack_id", Type: field.TypeString},
+		{Name: "slack_id", Type: field.TypeString, Unique: true},
 		{Name: "gh_access_token", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
