@@ -1,4 +1,4 @@
-package slack
+package service
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func (s *Service) pickAJoke() Joke {
 func (s *Service) tellAJoke(command openapi.CommandBody) error {
 	joke := s.pickAJoke()
 
-	_, _, err := s.client.PostMessage(command.ChannelID, slack.MsgOptionText(fmt.Sprintf("%s\n\n%s", joke.Setup, joke.Punchline), false), slack.MsgOptionPost())
+	_, _, err := s.SlackClient.PostMessage(command.ChannelID, slack.MsgOptionText(fmt.Sprintf("%s\n\n%s", joke.Setup, joke.Punchline), false), slack.MsgOptionPost())
 	if err != nil {
 		return err
 	}

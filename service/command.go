@@ -1,10 +1,13 @@
-package slack
+package service
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"slackbot/api/openapi"
+
+	"github.com/slack-go/slack"
 )
 
 const (
@@ -43,9 +46,17 @@ func (s *Service) HandleCommand(ctx context.Context, command openapi.CommandBody
 			return err
 		}
 	case CommandRepositories:
-
+		err := s.listGithubRepos(ctx, command)
+		if err != nil {
+			return err
+		}
 	default:
-		//TODO: return 400
+		_, _, err := s.SlackClient.PostMessage(command.ChannelID,
+			slack.MsgOptionText(fmt.Sprintf("The command you entered is unknown"), false),
+			slack.MsgOptionPost())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -1,19 +1,22 @@
 package service
 
 import (
+	"os"
+
 	"slackbot/ent"
-	"slackbot/service/slack"
+
+	"github.com/slack-go/slack"
 )
 
 type Service struct {
-	SlackService slack.Service
-	Database     *ent.Client
+	Database    *ent.Client
+	SlackClient *slack.Client
 }
 
 func NewService(entClient *ent.Client) (Service, error) {
 	s := Service{
-		Database:     entClient,
-		SlackService: slack.NewSlackService(entClient),
+		Database:    entClient,
+		SlackClient: slack.New(os.Getenv("SLACK_TOKEN")),
 	}
 
 	return s, nil

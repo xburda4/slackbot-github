@@ -1,4 +1,4 @@
-package slack
+package service
 
 import (
 	"slackbot/api/openapi"
@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Service) greet(command openapi.CommandBody) error {
-	_, err := s.client.OpenView(command.TriggerID, slack.ModalViewRequest{
+	_, err := s.SlackClient.OpenView(command.TriggerID, slack.ModalViewRequest{
 		Type: "modal",
 		Title: &slack.TextBlockObject{
 			Type: "plain_text",

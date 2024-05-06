@@ -1,4 +1,4 @@
-package slack
+package service
 
 import (
 	"context"
@@ -7,6 +7,6 @@ import (
 )
 
 func (s *Service) ProcessReceivedSlackMessage(_ context.Context, msg *slackapi.Msg) error {
-	_, _, err := s.client.PostMessage(msg.Channel, slackapi.MsgOptionText(msg.Text, false))
+	_, _, err := s.SlackClient.PostMessage(msg.Channel, slackapi.MsgOptionText(msg.Text, false))
 	return err
 }

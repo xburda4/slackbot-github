@@ -122,7 +122,7 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 		Text:    requestBody.Body.Event.Text,
 	}
 
-	err := h.service.SlackService.ProcessReceivedSlackMessage(ctx, msg)
+	err := h.service.ProcessReceivedSlackMessage(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.Comma
 		return nil, huma.Error400BadRequest("invalid body")
 	}
 
-	err := h.service.SlackService.HandleCommand(ctx, commandBody)
+	err := h.service.HandleCommand(ctx, commandBody)
 	if err != nil {
 		return nil, huma.Error500InternalServerError(err.Error())
 	}
