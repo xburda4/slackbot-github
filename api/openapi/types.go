@@ -1,22 +1,49 @@
 package openapi
 
+import (
+	"encoding/json"
+
+	"github.com/danielgtaylor/huma/v2"
+)
+
 type RequestBodyMessage struct {
-	TimeStamp      string    `header:"X-Slack-Request-Timestamp"`
-	SlackSignature string    `header:"x-slack-signature"`
-	Body           MessageIM `required:"false"`
+	TimeStamp      string `header:"X-Slack-Request-Timestamp"`
+	SlackSignature string `header:"x-slack-signature"`
+	Body           MessageIM
 	RawBody        []byte
+	_              struct{} `json:"-" additionalProperties:"true"`
+}
+
+func (rbm *RequestBodyMessage) Resolve(ctx huma.Context, prefix *huma.PathBuffer) []error {
+	if err := json.NewDecoder(ctx.BodyReader()).Decode(&rbm.Body); err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 type MessageIM struct {
-	Token string `json:"token" doc:"Token of the "`
+	Token string `json:"token,omitempty" doc:"Token of the "`
 	Event struct {
-		Type    string `json:"type" `
-		Channel string `json:"channel"`
-		User    string `json:"user"`
-		Text    string `json:"text" doc:"Text of the message" example:"This is a text" required:"false"`
+		Type    string   `json:"type,omitempty" `
+		Channel string   `json:"channel,omitempty"`
+		User    string   `json:"user,omitempty"`
+		Text    string   `json:"text,omitempty" doc:"Text of the message" example:"This is a text"`
+		BotID   string   `json:"bot_id,omitempty"`
+		_       struct{} `json:"-" additionalProperties:"true"`
 	} `json:"event,omitempty"`
-	Type      string `json:"type"`
-	Challenge string `json:"challenge,omitempty"`
+	Type      string   `json:"type"`
+	Challenge string   `json:"challenge,omitempty" required:"false"`
+	_         struct{} `json:"-" additionalProperties:"true"`
+}
+
+type InteractiveReq struct {
+	//Body    slack.InteractionCallback
+	RawBody []byte
+}
+
+type InteractiveResp struct {
+	Status int
 }
 
 type EventsRespBody struct {

@@ -3,10 +3,12 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"slackbot/api/openapi"
 
@@ -33,6 +35,16 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"slack"},
 	}, h.postEventReq)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "interact",
+		Method:        http.MethodPost,
+		Path:          "/slack/interactive",
+		Summary:       "Handles interactive events from Slack",
+		Description:   "Handles interactive events from Slack",
+		DefaultStatus: http.StatusOK,
+		Tags:          []string{"slack"},
+	}, h.postInteractiveReq)
 
 	huma.Register(api, huma.Operation{
 		OperationID:      "receiveCommand",
@@ -98,11 +110,40 @@ func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*stru
 	return nil, nil
 }
 
+func (h *Handler) postInteractiveReq(ctx context.Context, requestBody *openapi.InteractiveReq) (*openapi.InteractiveResp, error) {
+	unescaped, err := url.QueryUnescape(string(requestBody.RawBody))
+	if err != nil {
+		return nil, err
+	}
+
+	unescapedJSON := strings.TrimPrefix(unescaped, "payload=")
+
+	var ic slack.InteractionCallback
+	if err := json.NewDecoder(strings.NewReader(unescapedJSON)).Decode(&ic); err != nil {
+		return nil, err
+	}
+
+	if ic.Type != "block_actions" {
+		return nil, nil
+	}
+
+	_, err = h.service.UpdateModalView(ctx, ic)
+	if err != nil {
+		return &openapi.InteractiveResp{
+			Status: 200,
+		}, nil
+	}
+
+	return &openapi.InteractiveResp{
+		Status: 200,
+	}, nil
+
+}
+
 func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
 	if requestBody == nil {
 		return nil, errors.New("request body is nil")
 	}
-	fmt.Println("here")
 
 	if requestBody.Body.Type == "url_verification" {
 		challenge := requestBody.Body.Challenge
@@ -116,6 +157,9 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 
 	}
 
+	if requestBody.Body.Event.BotID != "" {
+		return nil, nil
+	}
 	msg := &slack.Msg{
 		Channel: requestBody.Body.Event.Channel,
 		User:    requestBody.Body.Event.User,

@@ -11,18 +11,16 @@ import (
 )
 
 const (
-	CommandJoke         = "joke"
-	CommandGreet        = "greet"
-	CommandLogin        = "login"
-	CommandLogout       = "logout"
-	CommandRepositories = "repositories"
+	CommandJoke               = "joke"
+	CommandGreet              = "greet"
+	CommandLogin              = "login"
+	CommandLogout             = "logout"
+	CommandRepositories       = "repositories"
+	CommandPresentationStatus = "status"
 )
 
 func (s *Service) HandleCommand(ctx context.Context, command openapi.CommandBody) error {
-	commandText, _, isFound := strings.Cut(command.Text, " ")
-	if !isFound {
-
-	}
+	commandText, _, _ := strings.Cut(command.Text, " ")
 
 	switch commandText {
 	case CommandJoke:
@@ -47,6 +45,11 @@ func (s *Service) HandleCommand(ctx context.Context, command openapi.CommandBody
 		}
 	case CommandRepositories:
 		err := s.listGithubRepos(ctx, command)
+		if err != nil {
+			return err
+		}
+	case CommandPresentationStatus:
+		err := s.askForPresentationStatus(ctx, command)
 		if err != nil {
 			return err
 		}

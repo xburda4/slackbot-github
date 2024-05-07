@@ -19,7 +19,7 @@ func (s *Service) greet(command openapi.CommandBody) error {
 					Type: "section",
 					Text: &slack.TextBlockObject{
 						Type: "mrkdwn",
-						Text: "Random *text*",
+						Text: "Hello STRV",
 					},
 				},
 			},
