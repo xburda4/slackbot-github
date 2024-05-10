@@ -133,6 +133,7 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *model.RequestBo
 		return nil, errors.New("request body is nil")
 	}
 
+	//check if the event is for verification of the endpoint
 	if requestBody.Body.Type == "url_verification" {
 		challenge := requestBody.Body.Challenge
 
@@ -145,9 +146,11 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *model.RequestBo
 
 	}
 
+	//check if it was sent from a Bot. If yes, don't respond
 	if requestBody.Body.Event.BotID != "" {
 		return nil, nil
 	}
+
 	msg := &slack.Msg{
 		Channel: requestBody.Body.Event.Channel,
 		User:    requestBody.Body.Event.User,

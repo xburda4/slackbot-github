@@ -15,8 +15,9 @@ const (
 	CommandGreet              = "greet"
 	CommandLogin              = "login"
 	CommandLogout             = "logout"
-	CommandRepositories       = "repositories"
+	CommandRepositories       = "repos"
 	CommandPresentationStatus = "status"
+	CommandHelp               = "help"
 )
 
 func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) error {
@@ -53,10 +54,14 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		if err != nil {
 			return err
 		}
+	case CommandHelp:
+		err := s.provideHelp(ctx, command)
+		if err != nil {
+			return err
+		}
 	default:
 		_, _, err := s.SlackClient.PostMessage(command.ChannelID,
-			slack.MsgOptionText(fmt.Sprintf("The command you entered is unknown"), false),
-			slack.MsgOptionPost())
+			slack.MsgOptionText(fmt.Sprintf("The command you entered is unknown. You can try `help` command to check which commands are available."), false))
 		if err != nil {
 			return err
 		}
