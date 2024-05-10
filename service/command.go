@@ -29,25 +29,40 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		if err != nil {
 			return err
 		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("joke"))
+		}
 	case CommandGreet:
 		err := s.greet(command)
 		if err != nil {
 			return err
+		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("greet"))
 		}
 	case CommandLogin:
 		err := s.githubLogin(ctx, command)
 		if err != nil {
 			return err
 		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("login"))
+		}
 	case CommandLogout:
 		err := s.githubLogout(ctx, command)
 		if err != nil {
 			return err
 		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("logout"))
+		}
 	case CommandRepositories:
 		err := s.listGithubRepos(ctx, command)
 		if err != nil {
 			return err
+		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("repos"))
 		}
 	case CommandPresentationStatus:
 		err := s.askForPresentationStatus(ctx, command)
@@ -58,6 +73,9 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		err := s.provideHelp(ctx, command)
 		if err != nil {
 			return err
+		}
+		if s.Socket != nil {
+			(*s.Socket).Write([]byte("help"))
 		}
 	default:
 		_, _, err := s.SlackClient.PostMessage(command.ChannelID,

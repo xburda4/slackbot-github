@@ -117,6 +117,9 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			if err != nil {
 				return false, err
 			}
+			if s.Socket != nil {
+				(*s.Socket).Write([]byte("sob-reaction"))
+			}
 		case ModalStatusPrettyWell:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{
 				Type:       "modal",
@@ -137,6 +140,9 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			if err != nil {
 				return false, err
 			}
+			if s.Socket != nil {
+				(*s.Socket).Write([]byte("pretty-well-reaction"))
+			}
 		case ModalStatusNeutral:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{
 				Type:       "modal",
@@ -156,6 +162,9 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			}, body.View.ExternalID, body.Hash, body.View.ID)
 			if err != nil {
 				return false, err
+			}
+			if s.Socket != nil {
+				(*s.Socket).Write([]byte("neutral-reaction"))
 			}
 		default:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{
