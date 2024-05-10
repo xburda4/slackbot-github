@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/go-github/v61/github"
@@ -110,7 +110,7 @@ func (s *Service) Authorize() error {
 	return nil
 }
 
-func (s *Service) githubLogin(_ context.Context, command openapi.CommandBody) error {
+func (s *Service) githubLogin(_ context.Context, command model.CommandBody) error {
 	encodedState := base64.StdEncoding.EncodeToString([]byte(command.UserID))
 
 	_, err := s.SlackClient.PostEphemeral(command.ChannelID, command.UserID, slack.MsgOptionBlocks(slack.ActionBlock{
@@ -138,7 +138,7 @@ func (s *Service) githubLogin(_ context.Context, command openapi.CommandBody) er
 	return nil
 }
 
-func (s *Service) githubLogout(ctx context.Context, command openapi.CommandBody) error {
+func (s *Service) githubLogout(ctx context.Context, command model.CommandBody) error {
 	_, err := s.Database.GithubUser.Delete().Where(sql.FieldContains("slack_id", command.UserID)).Exec(ctx)
 	if err != nil {
 		return err

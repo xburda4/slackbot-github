@@ -1,12 +1,12 @@
 package service
 
 import (
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"github.com/slack-go/slack"
 )
 
-func (s *Service) greet(command openapi.CommandBody) error {
+func (s *Service) greet(command model.CommandBody) error {
 	_, err := s.SlackClient.OpenView(command.TriggerID, slack.ModalViewRequest{
 		Type: "modal",
 		Title: &slack.TextBlockObject{

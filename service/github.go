@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/slack-go/slack"
@@ -22,7 +22,7 @@ type Repository struct {
 	Visibility  string `json:"visibility"`
 }
 
-func (s *Service) listGithubRepos(ctx context.Context, command openapi.CommandBody) error {
+func (s *Service) listGithubRepos(ctx context.Context, command model.CommandBody) error {
 	ghUser, err := s.Database.GithubUser.Query().
 		Where(func(s *sql.Selector) {
 			s.Where(sql.EQ("slack_id", command.UserID))

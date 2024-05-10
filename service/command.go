@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"github.com/slack-go/slack"
 )
@@ -19,7 +19,7 @@ const (
 	CommandPresentationStatus = "status"
 )
 
-func (s *Service) HandleCommand(ctx context.Context, command openapi.CommandBody) error {
+func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) error {
 	commandText, _, _ := strings.Cut(command.Text, " ")
 
 	switch commandText {

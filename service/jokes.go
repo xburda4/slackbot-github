@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"github.com/slack-go/slack"
 )
@@ -43,7 +43,7 @@ func (s *Service) pickAJoke() Joke {
 	return jokes[rand.Int()%len(jokes)]
 }
 
-func (s *Service) tellAJoke(command openapi.CommandBody) error {
+func (s *Service) tellAJoke(command model.CommandBody) error {
 	joke := s.pickAJoke()
 
 	_, _, err := s.SlackClient.PostMessage(command.ChannelID, slack.MsgOptionText(fmt.Sprintf("%s\n\n%s", joke.Setup, joke.Punchline), false), slack.MsgOptionPost())

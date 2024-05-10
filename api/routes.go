@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"github.com/ajg/form"
 	"github.com/danielgtaylor/huma/v2"
@@ -20,7 +20,6 @@ import (
 )
 
 func (h *Handler) SetupRoutes() *chi.Mux {
-
 	mux := chi.NewMux()
 	api := humachi.New(mux, huma.DefaultConfig("Slackbot", "0.1.0"))
 
@@ -80,24 +79,13 @@ func (h *Handler) SetupRoutes() *chi.Mux {
 	return mux
 }
 
-// Get values from request body or path
-
-/*func (h *Handler) handleAuthorizationReq(ctx huma.Context, _ *struct{}) (*struct{}, error) {
-	redirectURL, err := h.service.SlackService.Authenticate()
-	if err != nil {
-		return nil, huma.Error500InternalServerError(err.Error())
-	}
-
-	return nil, nil
-}*/
-
-func (h *Handler) handleFinishGithubAuthRequest(ctx context.Context, req *openapi.GithubOauthReq) (*openapi.GithubOauthResp, error) {
+func (h *Handler) handleFinishGithubAuthRequest(ctx context.Context, req *model.GithubOauthReq) (*model.GithubOauthResp, error) {
 	err := h.service.GithubOauth(ctx, req.Code, req.State)
 	if err != nil {
 		return nil, err
 	}
 
-	return &openapi.GithubOauthResp{
+	return &model.GithubOauthResp{
 		Status:      http.StatusOK,
 		Body:        []byte("<html><head><script type=\"text/javascript\">window.close();</script></head><body><p>Operation successful. You can safely close this window.</p></body></html>"),
 		ContentType: "text/html",
@@ -110,7 +98,7 @@ func (h *Handler) handleFinishAuthRequest(_ context.Context, _ *struct{}) (*stru
 	return nil, nil
 }
 
-func (h *Handler) postInteractiveReq(ctx context.Context, requestBody *openapi.InteractiveReq) (*openapi.InteractiveResp, error) {
+func (h *Handler) postInteractiveReq(ctx context.Context, requestBody *model.InteractiveReq) (*model.InteractiveResp, error) {
 	unescaped, err := url.QueryUnescape(string(requestBody.RawBody))
 	if err != nil {
 		return nil, err
@@ -129,18 +117,18 @@ func (h *Handler) postInteractiveReq(ctx context.Context, requestBody *openapi.I
 
 	_, err = h.service.UpdateModalView(ctx, ic)
 	if err != nil {
-		return &openapi.InteractiveResp{
+		return &model.InteractiveResp{
 			Status: 200,
 		}, nil
 	}
 
-	return &openapi.InteractiveResp{
+	return &model.InteractiveResp{
 		Status: 200,
 	}, nil
 
 }
 
-func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.RequestBodyMessage) (*openapi.EventsResp, error) {
+func (h *Handler) postEventReq(ctx context.Context, requestBody *model.RequestBodyMessage) (*model.EventsResp, error) {
 	if requestBody == nil {
 		return nil, errors.New("request body is nil")
 	}
@@ -148,8 +136,8 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 	if requestBody.Body.Type == "url_verification" {
 		challenge := requestBody.Body.Challenge
 
-		return &openapi.EventsResp{
-			Body: openapi.EventsRespBody{
+		return &model.EventsResp{
+			Body: model.EventsRespBody{
 				Challenge: challenge,
 			},
 			ContentType: "application/json",
@@ -171,15 +159,15 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *openapi.Request
 		return nil, err
 	}
 
-	return &openapi.EventsResp{}, nil
+	return &model.EventsResp{}, nil
 }
 
-func (h *Handler) postCommandReq(ctx context.Context, requestBody *openapi.CommandReq) (*struct{}, error) {
+func (h *Handler) postCommandReq(ctx context.Context, requestBody *model.CommandReq) (*struct{}, error) {
 	if requestBody == nil {
 		return nil, huma.Error400BadRequest("request body is nil")
 	}
 
-	var commandBody openapi.CommandBody
+	var commandBody model.CommandBody
 	// Get request info you don't normally have access to.
 	d := form.NewDecoder(bytes.NewReader(requestBody.RawBody))
 

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"slackbot/api/openapi"
+	"slackbot/api/model"
 
 	"github.com/slack-go/slack"
 )
@@ -16,7 +16,7 @@ const (
 	ModalStatusCrying     = "crying"
 )
 
-func (s *Service) askForPresentationStatus(_ context.Context, command openapi.CommandBody) error {
+func (s *Service) askForPresentationStatus(_ context.Context, command model.CommandBody) error {
 	_, err := s.SlackClient.OpenView(command.TriggerID, slack.ModalViewRequest{
 		Type:       "modal",
 		CallbackID: "presentation-status",

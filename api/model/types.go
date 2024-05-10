@@ -1,10 +1,4 @@
-package openapi
-
-import (
-	"encoding/json"
-
-	"github.com/danielgtaylor/huma/v2"
-)
+package model
 
 type RequestBodyMessage struct {
 	TimeStamp      string `header:"X-Slack-Request-Timestamp"`
@@ -12,14 +6,6 @@ type RequestBodyMessage struct {
 	Body           MessageIM
 	RawBody        []byte
 	_              struct{} `json:"-" additionalProperties:"true"`
-}
-
-func (rbm *RequestBodyMessage) Resolve(ctx huma.Context, prefix *huma.PathBuffer) []error {
-	if err := json.NewDecoder(ctx.BodyReader()).Decode(&rbm.Body); err != nil {
-		return nil
-	}
-
-	return nil
 }
 
 type MessageIM struct {
@@ -33,7 +19,7 @@ type MessageIM struct {
 		_       struct{} `json:"-" additionalProperties:"true"`
 	} `json:"event,omitempty"`
 	Type      string   `json:"type"`
-	Challenge string   `json:"challenge,omitempty" required:"false"`
+	Challenge string   `json:"challenge,omitempty"`
 	_         struct{} `json:"-" additionalProperties:"true"`
 }
 
