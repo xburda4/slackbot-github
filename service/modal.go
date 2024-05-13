@@ -117,8 +117,12 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			if err != nil {
 				return false, err
 			}
-			if s.Socket != nil {
-				(*s.Socket).Write([]byte("sob-reaction"))
+
+			if conn, err := s.dialSocket(); err != nil {
+				return false, err
+			} else {
+				conn.Write([]byte("sob-reaction"))
+				conn.Close()
 			}
 		case ModalStatusPrettyWell:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{
@@ -140,8 +144,12 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			if err != nil {
 				return false, err
 			}
-			if s.Socket != nil {
-				(*s.Socket).Write([]byte("pretty-well-reaction"))
+
+			if conn, err := s.dialSocket(); err != nil {
+				return false, err
+			} else {
+				conn.Write([]byte("pretty-well-reaction"))
+				conn.Close()
 			}
 		case ModalStatusNeutral:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{
@@ -163,8 +171,12 @@ func (s *Service) UpdateModalView(_ context.Context, body slack.InteractionCallb
 			if err != nil {
 				return false, err
 			}
-			if s.Socket != nil {
-				(*s.Socket).Write([]byte("neutral-reaction"))
+
+			if conn, err := s.dialSocket(); err != nil {
+				return false, err
+			} else {
+				conn.Write([]byte("neutral-reaction"))
+				conn.Close()
 			}
 		default:
 			_, err := s.SlackClient.UpdateView(slack.ModalViewRequest{

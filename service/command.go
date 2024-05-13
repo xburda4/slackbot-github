@@ -29,40 +29,55 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("joke"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("joke"))
+			conn.Close()
 		}
 	case CommandGreet:
 		err := s.greet(command)
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("greet"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("greet"))
+			conn.Close()
 		}
 	case CommandLogin:
 		err := s.githubLogin(ctx, command)
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("login"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("login"))
+			conn.Close()
 		}
 	case CommandLogout:
 		err := s.githubLogout(ctx, command)
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("logout"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("logout"))
+			conn.Close()
 		}
 	case CommandRepositories:
 		err := s.listGithubRepos(ctx, command)
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("repos"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("repos"))
+			conn.Close()
 		}
 	case CommandPresentationStatus:
 		err := s.askForPresentationStatus(ctx, command)
@@ -74,8 +89,11 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		if err != nil {
 			return err
 		}
-		if s.Socket != nil {
-			(*s.Socket).Write([]byte("help"))
+		if conn, err := s.dialSocket(); err != nil {
+			return err
+		} else {
+			conn.Write([]byte("help"))
+			conn.Close()
 		}
 	default:
 		_, _, err := s.SlackClient.PostMessage(command.ChannelID,

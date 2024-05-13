@@ -30,6 +30,7 @@ type InteractiveReq struct {
 
 type InteractiveResp struct {
 	Status int
+	Body   struct{}
 }
 
 type EventsRespBody struct {

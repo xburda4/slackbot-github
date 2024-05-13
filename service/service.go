@@ -12,19 +12,21 @@ import (
 type Service struct {
 	Database    *ent.Client
 	SlackClient *slack.Client
-	Socket      *net.Conn
+}
+
+func (s *Service) dialSocket() (net.Conn, error) {
+	c, err := net.Dial("unix", "/tmp/bmo.sock")
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 func NewService(entClient *ent.Client) (Service, error) {
-	c, err := net.Dial("unix", "/tmp/bmo.sock")
-	if err != nil {
-		return Service{}, err
-	}
-
 	s := Service{
 		Database:    entClient,
 		SlackClient: slack.New(os.Getenv("SLACK_TOKEN")),
-		Socket:      &c,
 	}
 
 	return s, nil
