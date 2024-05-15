@@ -1,0 +1,17 @@
+on: [workflow_dispatch]
+name: Create an issue on dispatch
+permissions:
+  contents: read
+  issues: write
+jobs:
+  stuff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          update_existing: true
+          search_existing: all
+        with:
+          filename: .github/OSV_SCANNER_ISSUE.md
