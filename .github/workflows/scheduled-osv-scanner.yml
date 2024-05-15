@@ -11,7 +11,7 @@ jobs:
       - uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          update_existing: "true"
-          search_existing: all
         with:
           filename: .github/OSV_SCANNER_ISSUE.md
+          update_existing: true
+          search_existing: all
