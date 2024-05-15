@@ -143,12 +143,11 @@ func (h *Handler) postEventReq(ctx context.Context, requestBody *model.RequestBo
 			},
 			ContentType: "application/json",
 		}, nil
-
 	}
 
 	//check if it was sent from a Bot. If yes, don't respond
 	if requestBody.Body.Event.BotID != "" {
-		return nil, nil
+		return &model.EventsResp{}, nil
 	}
 
 	msg := &slack.Msg{

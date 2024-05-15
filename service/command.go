@@ -29,12 +29,14 @@ func (s *Service) HandleCommand(ctx context.Context, command model.CommandBody) 
 		if err != nil {
 			return err
 		}
-		if conn, err := s.dialSocket(); err != nil {
-			return err
-		} else {
-			conn.Write([]byte("joke"))
-			conn.Close()
-		}
+		go func() {
+			if conn, err := s.dialSocket(); err != nil {
+				return
+			} else {
+				conn.Write([]byte("joke"))
+				conn.Close()
+			}
+		}()
 	case CommandGreet:
 		err := s.greet(command)
 		if err != nil {
